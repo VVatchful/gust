@@ -64,7 +64,7 @@ func (l *Lexer) NextToken() Token {
 			tok.Literal = l.readIdentifier()
 			tok.Type = IDENT
 			return tok
-		} else if isDigit(l.currentChar) {
+    } else if isDigit(l.currentChar) {
 			tok.Literal = l.readNumber()
 			tok.Type = INT
 			return tok
