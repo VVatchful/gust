@@ -25,6 +25,14 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
+}
+
 func (l *Lexer) NextToken() Token {
 	var tok Token
 
@@ -34,17 +42,41 @@ func (l *Lexer) NextToken() Token {
 
 	switch l.currentChar {
 	case '=':
-		tok = Token{Type: ASSIGN, Literal: string(l.currentChar)}
+		if l.peekChar() == '=' {
+			ch := l.currentChar
+			l.readChar()
+			tok = Token{Type: EQ, Literal: string(ch) + string(l.currentChar)}
+		} else {
+			tok = Token{Type: ASSIGN, Literal: string(l.currentChar)}
+		}
 	case '+':
 		tok = Token{Type: PLUS, Literal: string(l.currentChar)}
 	case '-':
 		tok = Token{Type: MINUS, Literal: string(l.currentChar)}
 	case '!':
-		tok = Token{Type: BANG, Literal: string(l.currentChar)}
+		if l.peekChar() == '=' {
+			ch := l.currentChar
+			l.readChar()
+			tok = Token{Type: NOT_EQ, Literal: string(ch) + string(l.currentChar)}
+		} else {
+			tok = Token{Type: BANG, Literal: string(l.currentChar)}
+		}
 	case '*':
 		tok = Token{Type: ASTERISK, Literal: string(l.currentChar)}
 	case '/':
 		tok = Token{Type: SLASH, Literal: string(l.currentChar)}
+	case '&':
+		if l.peekChar() == '&' {
+			ch := l.currentChar
+			l.readChar()
+			tok = Token{Type: AND, Literal: string(ch) + string(l.currentChar)}
+		}
+	case '|':
+		if l.peekChar() == '|' {
+			ch := l.currentChar
+			l.readChar()
+			tok = Token{Type: OR, Literal: string(ch) + string(l.currentChar)}
+		}
 	case 0:
 		tok = Token{Type: EOF, Literal: ""}
 	case ';':
@@ -62,9 +94,9 @@ func (l *Lexer) NextToken() Token {
 	default:
 		if isLetter(l.currentChar) {
 			tok.Literal = l.readIdentifier()
-			tok.Type = IDENT
+			tok.Type = LookUpIdent(tok.Literal)
 			return tok
-    } else if isDigit(l.currentChar) {
+		} else if isDigit(l.currentChar) {
 			tok.Literal = l.readNumber()
 			tok.Type = INT
 			return tok
