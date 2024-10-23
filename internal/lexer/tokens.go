@@ -31,11 +31,12 @@ const (
 	RIGHT_PAREN
 	LEFT_BRACE
 	RIGHT_BRACE
-
 	FUNCTION
 	LET
 	RETURN
 	FOR
+	AND
+	OR
 )
 
 var keywords = map[string]TokenType{
@@ -50,4 +51,14 @@ func LookUpIdent(ident string) TokenType {
 		return tok
 	}
 	return IDENT
+}
+
+func NextToken(input string) Token {
+	switch input {
+	case "&&":
+		return Token{Type: AND, Literal: "&&"}
+	case "||":
+		return Token{Type: OR, Literal: "||"}
+	}
+	return Token{Type: ILLEGAL, Literal: input}
 }
