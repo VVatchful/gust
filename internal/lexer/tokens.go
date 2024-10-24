@@ -25,6 +25,8 @@ const (
 	LT
 	GT
 	INC
+	AND
+	OR
 	SEMICOLON
 	COMMA
 	LEFT_PAREN
@@ -35,8 +37,10 @@ const (
 	LET
 	RETURN
 	FOR
-	AND
-	OR
+	IF
+	ELSE
+	TRUE
+	FALSE
 )
 
 var keywords = map[string]TokenType{
@@ -44,6 +48,10 @@ var keywords = map[string]TokenType{
 	"let":    LET,
 	"return": RETURN,
 	"for":    FOR,
+	"if":     IF,
+	"else":   ELSE,
+	"true":   TRUE,
+	"false":  FALSE,
 }
 
 func LookUpIdent(ident string) TokenType {

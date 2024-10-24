@@ -25,14 +25,6 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
-func (l *Lexer) peekChar() byte {
-	if l.readPosition >= len(l.input) {
-		return 0
-	} else {
-		return l.input[l.readPosition]
-	}
-}
-
 func (l *Lexer) NextToken() Token {
 	var tok Token
 
@@ -43,9 +35,8 @@ func (l *Lexer) NextToken() Token {
 	switch l.currentChar {
 	case '=':
 		if l.peekChar() == '=' {
-			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: EQ, Literal: string(ch) + string(l.currentChar)}
+			tok = Token{Type: EQ, Literal: "=="}
 		} else {
 			tok = Token{Type: ASSIGN, Literal: string(l.currentChar)}
 		}
@@ -55,9 +46,8 @@ func (l *Lexer) NextToken() Token {
 		tok = Token{Type: MINUS, Literal: string(l.currentChar)}
 	case '!':
 		if l.peekChar() == '=' {
-			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: NOT_EQ, Literal: string(ch) + string(l.currentChar)}
+			tok = Token{Type: NOT_EQ, Literal: "!="}
 		} else {
 			tok = Token{Type: BANG, Literal: string(l.currentChar)}
 		}
@@ -67,18 +57,18 @@ func (l *Lexer) NextToken() Token {
 		tok = Token{Type: SLASH, Literal: string(l.currentChar)}
 	case '&':
 		if l.peekChar() == '&' {
-			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: AND, Literal: string(ch) + string(l.currentChar)}
+			tok = Token{Type: AND, Literal: "&&"}
+		} else {
+			tok = Token{Type: ILLEGAL, Literal: string(l.currentChar)}
 		}
 	case '|':
 		if l.peekChar() == '|' {
-			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: OR, Literal: string(ch) + string(l.currentChar)}
+			tok = Token{Type: OR, Literal: "||"}
+		} else {
+			tok = Token{Type: ILLEGAL, Literal: string(l.currentChar)}
 		}
-	case 0:
-		tok = Token{Type: EOF, Literal: ""}
 	case ';':
 		tok = Token{Type: SEMICOLON, Literal: string(l.currentChar)}
 	case ',':
@@ -91,6 +81,8 @@ func (l *Lexer) NextToken() Token {
 		tok = Token{Type: LEFT_BRACE, Literal: string(l.currentChar)}
 	case '}':
 		tok = Token{Type: RIGHT_BRACE, Literal: string(l.currentChar)}
+	case 0:
+		tok = Token{Type: EOF, Literal: ""}
 	default:
 		if isLetter(l.currentChar) {
 			tok.Literal = l.readIdentifier()
@@ -107,6 +99,14 @@ func (l *Lexer) NextToken() Token {
 
 	l.readChar()
 	return tok
+}
+
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	} else {
+		return l.input[l.readPosition]
+	}
 }
 
 func (l *Lexer) readIdentifier() string {
