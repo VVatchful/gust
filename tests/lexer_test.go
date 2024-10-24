@@ -1,3 +1,4 @@
+
 package tests
 
 import (
@@ -47,3 +48,4 @@ func TestLexer(t *testing.T) {
      fmt.Println(val)
   }
 }
+

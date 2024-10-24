@@ -2,7 +2,7 @@ package parser
 
 import (
 	"fmt"
-	"gust/internal/lexer"
+	"github.com/voidwyrm-2/gust/internal/lexer"
 	"strconv"
 )
 
