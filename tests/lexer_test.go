@@ -39,6 +39,7 @@ func TestLexer(t *testing.T) {
 		fmt.Println(val)
 	}
 	//  this will run all the tokens if you want to comment out the test and uncomment this
+<<<<<<< Updated upstream
 	 for {
      tok := l.NextToken()
      if tok.Type == lexer.EOF {
@@ -49,3 +50,14 @@ func TestLexer(t *testing.T) {
   }
 }
 
+=======
+	// for {
+  //   tok := l.NextToken()
+  //   if tok.Type == lexer.EOF {
+  //       break
+  //   }
+  //   val := fmt.Sprintf("type: %d literal: %s", tok.Type, tok.Literal)
+  //   fmt.Println(val)
+	// }
+}
+>>>>>>> Stashed changes
