@@ -32,6 +32,8 @@ func (l *Lexer) NextToken() Token {
 		l.readChar()
 	}
 
+    l.skipWhitespace()
+
 	switch l.currentChar {
 	case '=':
 		if l.peekChar() == '=' {
@@ -140,6 +142,12 @@ func (l *Lexer) readString() string {
     }
     l.readChar()
     return l.input[position:l.position-1]
+}
+
+func (l *Lexer) skipWhitespace() {
+    for unicode.IsSpace(rune(l.currentChar)) {
+        l.readChar()
+    }
 }
 
 func isLetter(ch byte) bool {
