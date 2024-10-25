@@ -60,4 +60,7 @@ func TestLexer(t *testing.T) {
   //   fmt.Println(val)
 	// }
 }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
