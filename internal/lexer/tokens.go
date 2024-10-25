@@ -19,20 +19,24 @@ const (
 	BANG
 	ASTERISK
 	SLASH
+	MOD
 	CONCAT
 	EQ
 	NOT_EQ
 	LT
 	GT
 	INC
+	DEC
 	AND
 	OR
 	SEMICOLON
 	COMMA
+	COLON
 	LEFT_PAREN
 	RIGHT_PAREN
 	LEFT_BRACE
 	RIGHT_BRACE
+	ARROW
 	FUNCTION
 	LET
 	RETURN
@@ -41,6 +45,8 @@ const (
 	ELSE
 	TRUE
 	FALSE
+	COMMENT_SINGLE
+  COMMENT_MULTI
 )
 
 var keywords = map[string]TokenType{
@@ -67,6 +73,22 @@ func NextToken(input string) Token {
 		return Token{Type: AND, Literal: "&&"}
 	case "||":
 		return Token{Type: OR, Literal: "||"}
+	case "++":
+		return Token{Type: INC, Literal: "++"}
+	case "--":
+		return Token{Type: DEC, Literal: "--"}
+	case "%":
+		return Token{Type: MOD, Literal: "%"}
+	case ":":
+		return Token{Type: COLON, Literal: ":"}
+	case "->":
+		return Token{Type: ARROW, Literal: "->"}
+	case "#":
+		return Token{Type: COMMENT_SINGLE, Literal: "#"}
+	case "##":
+		return Token{Type: COMMENT_MULTI, Literal: "##"}
+	default:
+		return Token{Type: ILLEGAL, Literal: input}
 	}
-	return Token{Type: ILLEGAL, Literal: input}
 }
+
