@@ -125,6 +125,19 @@ func (l *Lexer) readNumber() string {
 	return l.input[position:l.position]
 }
 
+func (l *Lexer) readString() string {
+    position := l.position + 1
+    l.readChar()
+    for l.currentChar != '"' && l.currentChar != 0 {
+        l.readChar()
+    }
+    if l.currentChar == 0 {
+        return l.input[position:l.position]
+    }
+    l.readChar()
+    return l.input[position:l.position-1]
+}
+
 func isLetter(ch byte) bool {
 	return ('a' <= ch && ch <= 'z') || ('A' <= ch && ch <= 'Z') || ch == '_'
 }
