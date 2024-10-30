@@ -64,9 +64,9 @@ var keywords = map[string]TokenType{
 
 type Lexer struct {
 	input        string
-	position     int  // current position in input (points to current char)
-	readPosition int  // current reading position in input (after current char)
-	currentChar  byte // current char under examination
+	position     int
+	readPosition int
+	currentChar  byte
 }
 
 func New(input string) *Lexer {
@@ -247,15 +247,15 @@ func (l *Lexer) readNumber() string {
 
 func (l *Lexer) readString() string {
 	position := l.position + 1
-	l.readChar() // skip opening quote
+	l.readChar()
 	for l.currentChar != '"' && l.currentChar != 0 {
 		l.readChar()
 	}
 	if l.currentChar == 0 {
-		return l.input[position:l.position] // unterminated string
+		return l.input[position:l.position]
 	}
 	str := l.input[position:l.position]
-	l.readChar() // skip closing quote
+	l.readChar()
 	return str
 }
 
@@ -271,13 +271,13 @@ func (l *Lexer) readMultiLineComment() string {
 	position := l.position - 1 // include the ##
 	for {
 		if l.currentChar == '#' && l.peekChar() == '#' {
-			l.readChar() // consume second #
-			l.readChar() // move past comment
+			l.readChar()
+			l.readChar()
 			return l.input[position:l.position]
 		}
 		if l.currentChar == 0 {
-			return l.input[position:l.position] // EOF before comment end
-		}
+			return l.input[position:l.position]
+        }
 		l.readChar()
 	}
 }
