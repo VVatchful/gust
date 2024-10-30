@@ -2,11 +2,71 @@ package lexer
 
 import "unicode"
 
+type TokenType int
+
+type Token struct {
+	Type    TokenType
+	Literal string
+}
+
+const (
+	ILLEGAL TokenType = iota
+	EOF
+	IDENT
+	INT
+	STRING
+	ASSIGN
+	PLUS
+	MINUS
+	BANG
+	ASTERISK
+	SLASH
+	MOD
+	CONCAT
+	EQ
+	NOT_EQ
+	LT
+	GT
+	INC
+	DEC
+	AND
+	OR
+	SEMICOLON
+	COMMA
+	COLON
+	LEFT_PAREN
+	RIGHT_PAREN
+	LEFT_BRACE
+	RIGHT_BRACE
+	ARROW
+	FUNCTION
+	LET
+	RETURN
+	FOR
+	IF
+	ELSE
+	TRUE
+	FALSE
+	COMMENT_SINGLE
+	COMMENT_MULTI
+)
+
+var keywords = map[string]TokenType{
+	"fn":     FUNCTION,
+	"let":    LET,
+	"return": RETURN,
+	"for":    FOR,
+	"if":     IF,
+	"else":   ELSE,
+	"true":   TRUE,
+	"false":  FALSE,
+}
+
 type Lexer struct {
 	input        string
-	position     int
-	readPosition int
-	currentChar  byte
+	position     int  // current position in input (points to current char)
+	readPosition int  // current reading position in input (after current char)
+	currentChar  byte // current char under examination
 }
 
 func New(input string) *Lexer {
@@ -25,6 +85,13 @@ func (l *Lexer) readChar() {
 	l.readPosition++
 }
 
+func (l *Lexer) peekChar() byte {
+	if l.readPosition >= len(l.input) {
+		return 0
+	}
+	return l.input[l.readPosition]
+}
+
 func (l *Lexer) NextToken() Token {
 	var tok Token
 
@@ -33,68 +100,87 @@ func (l *Lexer) NextToken() Token {
 	switch l.currentChar {
 	case '=':
 		if l.peekChar() == '=' {
+			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: EQ, Literal: "=="}
+			tok = Token{Type: EQ, Literal: string(ch) + string(l.currentChar)}
 		} else {
-			tok = Token{Type: ASSIGN, Literal: string(l.currentChar)}
+			tok = newToken(ASSIGN, l.currentChar)
+		}
+	case '!':
+		if l.peekChar() == '=' {
+			ch := l.currentChar
+			l.readChar()
+			tok = Token{Type: NOT_EQ, Literal: string(ch) + string(l.currentChar)}
+		} else {
+			tok = newToken(BANG, l.currentChar)
 		}
 	case '+':
 		if l.peekChar() == '+' {
+			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: INC, Literal: "++"}
+			tok = Token{Type: INC, Literal: string(ch) + string(l.currentChar)}
 		} else {
-			tok = Token{Type: PLUS, Literal: string(l.currentChar)}
+			tok = newToken(PLUS, l.currentChar)
 		}
 	case '-':
 		if l.peekChar() == '>' {
+			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: ARROW, Literal: "->"}
+			tok = Token{Type: ARROW, Literal: string(ch) + string(l.currentChar)}
 		} else if l.peekChar() == '-' {
+			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: DEC, Literal: "--"}
+			tok = Token{Type: DEC, Literal: string(ch) + string(l.currentChar)}
 		} else {
-			tok = Token{Type: MINUS, Literal: string(l.currentChar)}
+			tok = newToken(MINUS, l.currentChar)
 		}
 	case '*':
-		tok = Token{Type: ASTERISK, Literal: string(l.currentChar)}
+		tok = newToken(ASTERISK, l.currentChar)
 	case '/':
-		tok = Token{Type: SLASH, Literal: string(l.currentChar)}
+		tok = newToken(SLASH, l.currentChar)
 	case '%':
-		tok = Token{Type: MOD, Literal: string(l.currentChar)}
+		tok = newToken(MOD, l.currentChar)
+	case '<':
+		tok = newToken(LT, l.currentChar)
+	case '>':
+		tok = newToken(GT, l.currentChar)
+	case ';':
+		tok = newToken(SEMICOLON, l.currentChar)
+	case ':':
+		tok = newToken(COLON, l.currentChar)
+	case ',':
+		tok = newToken(COMMA, l.currentChar)
+	case '(':
+		tok = newToken(LEFT_PAREN, l.currentChar)
+	case ')':
+		tok = newToken(RIGHT_PAREN, l.currentChar)
+	case '{':
+		tok = newToken(LEFT_BRACE, l.currentChar)
+	case '}':
+		tok = newToken(RIGHT_BRACE, l.currentChar)
 	case '&':
 		if l.peekChar() == '&' {
+			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: AND, Literal: "&&"}
+			tok = Token{Type: AND, Literal: string(ch) + string(l.currentChar)}
 		} else {
-			tok = Token{Type: ILLEGAL, Literal: string(l.currentChar)}
+			tok = newToken(ILLEGAL, l.currentChar)
 		}
 	case '|':
 		if l.peekChar() == '|' {
+			ch := l.currentChar
 			l.readChar()
-			tok = Token{Type: OR, Literal: "||"}
+			tok = Token{Type: OR, Literal: string(ch) + string(l.currentChar)}
 		} else {
-			tok = Token{Type: ILLEGAL, Literal: string(l.currentChar)}
+			tok = newToken(ILLEGAL, l.currentChar)
 		}
-	case ';':
-		tok = Token{Type: SEMICOLON, Literal: string(l.currentChar)}
-	case ':':
-		tok = Token{Type: COLON, Literal: string(l.currentChar)}
-	case ',':
-		tok = Token{Type: COMMA, Literal: string(l.currentChar)}
-	case '(':
-		tok = Token{Type: LEFT_PAREN, Literal: string(l.currentChar)}
-	case ')':
-		tok = Token{Type: RIGHT_PAREN, Literal: string(l.currentChar)}
-	case '{':
-		tok = Token{Type: LEFT_BRACE, Literal: string(l.currentChar)}
-	case '}':
-		tok = Token{Type: RIGHT_BRACE, Literal: string(l.currentChar)}
 	case '"':
-		tok.Literal = l.readString()
 		tok.Type = STRING
+		tok.Literal = l.readString()
 		return tok
 	case '#':
 		if l.peekChar() == '#' {
+			l.readChar() // consume second #
 			l.readMultiLineComment()
 			return l.NextToken()
 		} else {
@@ -102,18 +188,19 @@ func (l *Lexer) NextToken() Token {
 			return l.NextToken()
 		}
 	case 0:
-		tok = Token{Type: EOF, Literal: ""}
+		tok.Literal = ""
+		tok.Type = EOF
 	default:
 		if isLetter(l.currentChar) {
 			tok.Literal = l.readIdentifier()
-			tok.Type = LookUpIdent(tok.Literal)
+			tok.Type = LookupIdent(tok.Literal)
 			return tok
 		} else if isDigit(l.currentChar) {
 			tok.Literal = l.readNumber()
 			tok.Type = INT
 			return tok
 		} else {
-			tok = Token{Type: ILLEGAL, Literal: string(l.currentChar)}
+			tok = newToken(ILLEGAL, l.currentChar)
 		}
 	}
 
@@ -121,11 +208,9 @@ func (l *Lexer) NextToken() Token {
 	return tok
 }
 
-func (l *Lexer) peekChar() byte {
-	if l.readPosition >= len(l.input) {
-		return 0
-	} else {
-		return l.input[l.readPosition]
+func (l *Lexer) skipWhitespace() {
+	for unicode.IsSpace(rune(l.currentChar)) {
+		l.readChar()
 	}
 }
 
@@ -147,15 +232,16 @@ func (l *Lexer) readNumber() string {
 
 func (l *Lexer) readString() string {
 	position := l.position + 1
-	l.readChar()
+	l.readChar() // skip opening quote
 	for l.currentChar != '"' && l.currentChar != 0 {
 		l.readChar()
 	}
 	if l.currentChar == 0 {
-		return l.input[position:l.position]
+		return l.input[position:l.position] // unterminated string
 	}
-	l.readChar()
-	return l.input[position:l.position-1]
+	str := l.input[position:l.position]
+	l.readChar() // skip closing quote
+	return str
 }
 
 func (l *Lexer) readSingleLineComment() {
@@ -165,24 +251,21 @@ func (l *Lexer) readSingleLineComment() {
 }
 
 func (l *Lexer) readMultiLineComment() {
-	l.readChar()
 	for {
 		if l.currentChar == '#' && l.peekChar() == '#' {
-			l.readChar()
-			l.readChar()
+			l.readChar() // consume second #
+			l.readChar() // move past comment
 			break
 		}
 		if l.currentChar == 0 {
-			break
+			break // EOF before comment end
 		}
 		l.readChar()
 	}
 }
 
-func (l *Lexer) skipWhitespace() {
-	for unicode.IsSpace(rune(l.currentChar)) {
-		l.readChar()
-	}
+func newToken(tokenType TokenType, ch byte) Token {
+	return Token{Type: tokenType, Literal: string(ch)}
 }
 
 func isLetter(ch byte) bool {
@@ -193,3 +276,9 @@ func isDigit(ch byte) bool {
 	return '0' <= ch && ch <= '9'
 }
 
+func LookupIdent(ident string) TokenType {
+	if tok, ok := keywords[ident]; ok {
+		return tok
+	}
+	return IDENT
+}
