@@ -106,6 +106,13 @@ func (l *Lexer) NextToken() Token {
 		} else {
 			tok = newToken(ASSIGN, l.currentChar)
 		}
+	case ';':
+		if l.peekChar() == '=' {
+			l.readChar()
+			tok = Token{Type: ASSIGN, Literal: ";="}
+		} else {
+			tok = newToken(SEMICOLON, l.currentChar)
+		}
 	case '!':
 		if l.peekChar() == '=' {
 			ch := l.currentChar
@@ -134,6 +141,14 @@ func (l *Lexer) NextToken() Token {
 		} else {
 			tok = newToken(MINUS, l.currentChar)
 		}
+	case '.':
+		if l.peekChar() == '.' {
+			ch := l.currentChar
+			l.readChar()
+			tok = Token{Type: CONCAT, Literal: string(ch) + string(l.currentChar)}
+		} else {
+			tok = newToken(ILLEGAL, l.currentChar)
+		}
 	case '*':
 		tok = newToken(ASTERISK, l.currentChar)
 	case '/':
@@ -144,12 +159,10 @@ func (l *Lexer) NextToken() Token {
 		tok = newToken(LT, l.currentChar)
 	case '>':
 		tok = newToken(GT, l.currentChar)
-	case ';':
-		tok = newToken(SEMICOLON, l.currentChar)
-	case ':':
-		tok = newToken(COLON, l.currentChar)
 	case ',':
 		tok = newToken(COMMA, l.currentChar)
+	case ':':
+		tok = newToken(COLON, l.currentChar)
 	case '(':
 		tok = newToken(LEFT_PAREN, l.currentChar)
 	case ')':
@@ -181,11 +194,13 @@ func (l *Lexer) NextToken() Token {
 	case '#':
 		if l.peekChar() == '#' {
 			l.readChar() // consume second #
-			l.readMultiLineComment()
-			return l.NextToken()
+			comment := l.readMultiLineComment()
+			tok = Token{Type: COMMENT_MULTI, Literal: comment}
+			return tok
 		} else {
-			l.readSingleLineComment()
-			return l.NextToken()
+			comment := l.readSingleLineComment()
+			tok = Token{Type: COMMENT_SINGLE, Literal: comment}
+			return tok
 		}
 	case 0:
 		tok.Literal = ""
@@ -244,21 +259,24 @@ func (l *Lexer) readString() string {
 	return str
 }
 
-func (l *Lexer) readSingleLineComment() {
+func (l *Lexer) readSingleLineComment() string {
+	position := l.position
 	for l.currentChar != '\n' && l.currentChar != 0 {
 		l.readChar()
 	}
+	return l.input[position:l.position]
 }
 
-func (l *Lexer) readMultiLineComment() {
+func (l *Lexer) readMultiLineComment() string {
+	position := l.position - 1 // include the ##
 	for {
 		if l.currentChar == '#' && l.peekChar() == '#' {
 			l.readChar() // consume second #
 			l.readChar() // move past comment
-			break
+			return l.input[position:l.position]
 		}
 		if l.currentChar == 0 {
-			break // EOF before comment end
+			return l.input[position:l.position] // EOF before comment end
 		}
 		l.readChar()
 	}
