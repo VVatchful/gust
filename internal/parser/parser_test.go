@@ -3,6 +3,7 @@ package parser
 import (
 	"github.com/voidwyrm-2/gust/internal/lexer"
 	"testing"
+  "fmt"
 )
 
 
@@ -15,6 +16,8 @@ if (x < 10) { x } else { y }
 return add(x, 15)
 !true
 `
+	t.Logf("Testing basic parsing with input:\n%s", input)
+
 	l := lexer.New(input)
 	p := New(l)
 	program := p.ParseProgram()
@@ -28,16 +31,18 @@ return add(x, 15)
 		expectedType string
 	}{
 		{"*parser.LetStatement"},
-    {"*parser.LetStatement"},
+		{"*parser.LetStatement"},
 		{"*parser.LetStatement"},
 		{"*parser.ExpressionStatement"},
 		{"*parser.ReturnStatement"},
 		{"*parser.ExpressionStatement"},
-    }
+	}
 
 	for i, tt := range tests {
 		stmt := program.Statements[i]
-		if typeOf := stringify(stmt); typeOf != tt.expectedType {
+		typeOf := stringify(stmt)
+		t.Logf("Statement %d: expected=%q, got=%q", i, tt.expectedType, typeOf)
+		if typeOf != tt.expectedType {
 			t.Errorf("program.Statements[%d] type wrong. expected=%q, got=%q",
 				i, tt.expectedType, typeOf)
 		}
@@ -46,6 +51,7 @@ return add(x, 15)
 
 func TestLetStatement(t *testing.T) {
 	input := "let x = 5"
+	t.Logf("Testing let statement parsing with input: %q", input)
 
 	l := lexer.New(input)
 	p := New(l)
@@ -63,6 +69,7 @@ func TestLetStatement(t *testing.T) {
 			program.Statements[0])
 	}
 
+	t.Logf("Let statement name: %s", stmt.Name.Value)
 	if stmt.Name.Value != "x" {
 		t.Errorf("letStmt.Name.Value not 'x'. got=%s", stmt.Name.Value)
 	}
@@ -70,10 +77,12 @@ func TestLetStatement(t *testing.T) {
 	if !testIntegerLiteral(t, stmt.Value, 5) {
 		return
 	}
+	t.Logf("Let statement value correctly parsed as: %d", 5)
 }
 
 func TestFunctionLiteral(t *testing.T) {
 	input := "fn(x, y) { x + y }"
+	t.Logf("Testing function literal parsing with input: %q", input)
 
 	l := lexer.New(input)
 	p := New(l)
@@ -95,16 +104,19 @@ func TestFunctionLiteral(t *testing.T) {
 		t.Fatalf("stmt.Expression is not FunctionLiteral. got=%T", stmt.Expression)
 	}
 
+	t.Logf("Function parameters count: %d", len(function.Parameters))
 	if len(function.Parameters) != 2 {
 		t.Fatalf("function parameters wrong. want 2, got=%d",
 			len(function.Parameters))
 	}
 
+	t.Logf("Function parameters: %s, %s", function.Parameters[0].Value, function.Parameters[1].Value)
 	if function.Parameters[0].Value != "x" || function.Parameters[1].Value != "y" {
 		t.Errorf("parameter values wrong. want 'x' and 'y', got=%q and %q",
 			function.Parameters[0].Value, function.Parameters[1].Value)
 	}
 
+	t.Logf("Function body statements count: %d", len(function.Body.Statements))
 	if len(function.Body.Statements) != 1 {
 		t.Fatalf("function.Body.Statements has wrong number of statements. got=%d",
 			len(function.Body.Statements))
@@ -113,6 +125,7 @@ func TestFunctionLiteral(t *testing.T) {
 
 func TestIfExpression(t *testing.T) {
 	input := `if (x < y) { x } else { y }`
+	t.Logf("Testing if expression parsing with input: %q", input)
 
 	l := lexer.New(input)
 	p := New(l)
@@ -135,6 +148,7 @@ func TestIfExpression(t *testing.T) {
 		t.Fatalf("stmt.Expression is not IfExpression. got=%T", stmt.Expression)
 	}
 
+	t.Logf("If expression has alternative: %v", exp.Alternative != nil)
 	if exp.Alternative == nil {
 		t.Error("if expression has no alternative")
 	}
@@ -147,8 +161,8 @@ func checkParserErrors(t *testing.T, p *Parser) {
 	}
 
 	t.Errorf("parser has %d errors", len(errors))
-	for _, msg := range errors {
-		t.Errorf("parser error: %q", msg)
+	for i, msg := range errors {
+		t.Errorf("parser error %d: %q", i+1, msg)
 	}
 	t.FailNow()
 }
@@ -162,7 +176,7 @@ func stringify(stmt Statement) string {
 	case *ExpressionStatement:
 		return "*parser.ExpressionStatement"
 	default:
-		return "unknown"
+		return fmt.Sprintf("unknown: %T", stmt)
 	}
 }
 
